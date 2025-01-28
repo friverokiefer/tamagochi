@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Tamagotchi Amigable y Expresivo</title>
+
+  <style>
+    /* ==============================
+       ESTILOS GENERALES DE LA PÁGINA
+       ============================== */
+    body {
+      background-color: #f0f8ff; /* Fondo azul claro */
+      font-family: 'Arial', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      overflow: hidden; /* Evita scroll si hay animaciones */
+    }
+
+    #tamagotchi-container {
+      background-color: #fff;
+      border-radius: 20px;
+      padding: 20px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+      text-align: center;
+      position: relative;
+      width: 350px;
+    }
+
+    /* ==============================
+       ROBOT / TAMAGOTCHI
+       ============================== */
+    #robot {
+      width: 120px;
+      height: 140px;
+      background-color: #70a1ff; /* Cuerpo base (nivel 1) */
+      border-radius: 60px 60px 40px 40px; /* Bordes más redondeados */
+      position: relative;
+      transition: transform 0.5s ease, background-color 0.5s ease;
+      margin: 0 auto 20px;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3); /* Sombra más pronunciada */
+      animation: idle 7s infinite; /* Animación de rebote */
+    }
+
+    /* --------- NIVELES --------- */
+    .level-1 {
+      background-color: #70a1ff; /* Azul brillante */
+    }
+
+    .level-2 {
+      background-color: #555; /* Gris oscuro */
+    }
+
+    .level-3 {
+      background-color: #ffd700; /* Dorado */
+    }
+
+    .level-4 {
+      background-color: #000;   /* Negro */
+      border: 2px solid #fff;
+    }
+
+    .level-5 {
+      background-color: #8b0000; /* Rojo oscuro (maligno) */
+      border: 4px solid #ff0000; /* Borde rojo brillante */
+      box-shadow: 0 0 20px rgba(255,0,0,0.7);
+    }
+
+    /* Animación base de rebote (idle) */
+    @keyframes idle {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+
+    /* --------- ANTENA --------- */
+    .antenna {
+      width: 4px;
+      height: 20px;
+      background-color: #ffcc00; /* Amarillo brillante */
+      position: absolute;
+      top: -25px;
+      left: 50%;
+      transform: translateX(-50%);
+      border-radius: 4px 4px 0 0;
+      box-shadow: 0 0 10px rgba(255, 204, 0, 0.7);
+      animation: antenna-glow 2s infinite alternate;
+    }
+
+    @keyframes antenna-glow {
+      0% {
+        background-color: #ffcc00;
+        box-shadow: 0 0 10px rgba(255, 204, 0, 0.7);
+      }
+      100% {
+        background-color: #ff6b6b;
+        box-shadow: 0 0 20px rgba(255, 107, 107, 0.9);
+      }
+    }
+
+    /* --------- OJOS --------- */
+    .eyes {
+      display: flex;
+      justify-content: space-around;
+      padding-top: 20px; /* Ojos más arriba */
+    }
+
+    .eye {
+      width: 24px;
+      height: 24px;
+      background-color: #000; /* Negro para lentes oscuros */
+      border-radius: 50%;
+      position: relative;
+      box-shadow: inset 0 0 5px rgba(255,255,255,0.3);
+      transition: transform 0.5s ease, background-color 0.5s ease;
+      overflow: hidden;
+    }
+
+    /* Pupila que se moverá siguiendo el cursor */
+    .pupil {
+      width: 10px;
+      height: 10px;
+      background-color: #333;
+      border-radius: 50%;
+      position: absolute;
+      top: 7px;  /* Centrada en la .eye */
+      left: 7px; 
+      box-shadow: 0 0 2px rgba(255,255,255,0.7);
+      transition: transform 0.1s ease;
+    }
+
+    /* --------- BOCA --------- */
+    .mouth {
+      width: 30px;
+      height: 15px;
+      background-color: #333;
+      border-radius: 0 0 50px 50px;
+      position: absolute;
+      bottom: 15px;
+      left: 50%;
+      transform: translateX(-50%);
+      transition: height 0.5s ease, border-radius 0.5s ease, 
+                  background-color 0.5s ease, width 0.5s ease;
+    }
+
+    /* --------- BRAZOS --------- */
+    .arm {
+      width: 12px;
+      height: 40px;
+      background-color: #70a1ff; /* Azul brillante, igual que el cuerpo */
+      position: absolute;
+      top: 60px;
+      transition: transform 0.5s ease;
+    }
+
+    .left-arm {
+      left: -20px;
+      border-radius: 20px 0 0 20px;
+    }
+
+    .right-arm {
+      right: -20px;
+      border-radius: 0 20px 20px 0;
+    }
+
+    /* --------- RUEDAS --------- */
+    .wheels {
+      display: flex;
+      justify-content: space-around;
+      position: relative;
+      top: -10px;
+    }
+
+    .wheel {
+      width: 20px;
+      height: 20px;
+      background-color: #555;
+      border-radius: 50%;
+      transition: transform 0.5s ease;
+    }
+
+    /* --------- EMOJI --------- */
+    .emoji {
+      position: absolute;
+      top: -60px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 24px;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .show-emoji {
+      animation: fadeInOut 2s forwards;
+    }
+
+    @keyframes fadeInOut {
+      0% { opacity: 0; transform: translateY(0); }
+      10% { opacity: 1; transform: translateY(-20px); }
+      90% { opacity: 1; transform: translateY(-20px); }
+      100% { opacity: 0; transform: translateY(-40px); }
+    }
+
+    /* --------- BOTONES --------- */
+    .buttons {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    button {
+      background-color: #70a1ff;
+      color: #fff;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 10px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.3s ease, transform 0.2s ease;
+    }
+
+    button:hover {
+      background-color: #4a80f0;
+    }
+
+    button:active {
+      transform: scale(0.95);
+    }
+
+    /* ==============================
+       ANIMACIONES DE ESTADOS Y BOCA
+       ============================== */
+
+    @keyframes dance {
+      0% { transform: translateY(0) rotate(0); }
+      25% { transform: translateY(-5px) rotate(3deg); }
+      50% { transform: translateY(0) rotate(0); }
+      75% { transform: translateY(-5px) rotate(-3deg); }
+      100% { transform: translateY(0) rotate(0); }
+    }
+
+    @keyframes sad {
+      0% { transform: translateY(0); }
+      50% { transform: translateY(5px); }
+      100% { transform: translateY(0); }
+    }
+
+    @keyframes laugh {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+
+    @keyframes think {
+      0% { opacity: 0.6; }
+      50% { opacity: 1; }
+      100% { opacity: 0.6; }
+    }
+
+    @keyframes sleep {
+      0% { transform: rotate(0); }
+      50% { transform: rotate(-2deg); }
+      100% { transform: rotate(0); }
+    }
+
+    @keyframes work {
+      0% { transform: translateX(0); }
+      25% { transform: translateX(2px); }
+      50% { transform: translateX(0); }
+      75% { transform: translateX(-2px); }
+      100% { transform: translateX(0); }
+    }
+
+    @keyframes blink {
+      0%, 100% { height: 24px; }
+      50% { height: 4px; }
+    }
+
+    @keyframes happy-mouth {
+      0% {
+        width: 30px;
+        height: 15px;
+        border-radius: 0 0 50px 50px;
+      }
+      50% {
+        width: 40px;
+        height: 20px;
+        border-radius: 0 0 60px 60px;
+      }
+      100% {
+        width: 30px;
+        height: 15px;
+        border-radius: 0 0 50px 50px;
+      }
+    }
+
+    @keyframes sad-mouth {
+      0% {
+        width: 30px;
+        height: 15px;
+        border-radius: 50px 50px 0 0;
+      }
+      50% {
+        width: 40px;
+        height: 10px;
+        border-radius: 60px 60px 0 0;
+      }
+      100% {
+        width: 30px;
+        height: 15px;
+        border-radius: 50px 50px 0 0;
+      }
+    }
+
+    @keyframes laugh-mouth {
+      0% {
+        width: 30px;
+        height: 15px;
+        background-color: #333;
+        border-radius: 0 0 50px 50px;
+      }
+      50% {
+        width: 40px;
+        height: 20px;
+        background-color: #ff6b6b;
+        border-radius: 50%;
+      }
+      100% {
+        width: 30px;
+        height: 15px;
+        background-color: #333;
+        border-radius: 0 0 50px 50px;
+      }
+    }
+
+    @keyframes think-eyes {
+      0% { transform: scaleX(1); }
+      50% { transform: scaleX(0.5); }
+      100% { transform: scaleX(1); }
+    }
+
+    @keyframes sleeping-mouth {
+      0%, 100% {
+        width: 15px;
+        height: 7px;
+        border-radius: 50%;
+      }
+      50% {
+        width: 20px;
+        height: 10px;
+        border-radius: 50%;
+      }
+    }
+
+    @keyframes working-arms {
+      0% { transform: rotate(0deg); }
+      50% { transform: rotate(20deg); }
+      100% { transform: rotate(0deg); }
+    }
+
+    @keyframes spin-wheels {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    @keyframes rotate {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    @keyframes celebration-eyes {
+      0%   { background-color: #fff; }
+      50%  { background-color: #ffcc00; }
+      100% { background-color: #fff; }
+    }
+
+    @keyframes celebration-mouth {
+      0% {
+        width: 30px;
+        height: 15px;
+        background-color: #333;
+        border-radius: 0 0 50px 50px;
+      }
+      50% {
+        width: 40px;
+        height: 20px;
+        background-color: #ff6b6b;
+        border-radius: 50%;
+      }
+      100% {
+        width: 30px;
+        height: 15px;
+        background-color: #333;
+        border-radius: 0 0 50px 50px;
+      }
+    }
+
+    @keyframes confuse {
+      0% { transform: translateX(0) rotate(0); }
+      25% { transform: translateX(-3px) rotate(-3deg); }
+      50% { transform: translateX(0) rotate(0); }
+      75% { transform: translateX(3px) rotate(3deg); }
+      100% { transform: translateX(0) rotate(0); }
+    }
+
+    @keyframes confuse-eyes {
+      0% { transform: scaleX(1); }
+      50% { transform: scaleX(0.1); }
+      100% { transform: scaleX(1); }
+    }
+
+    @keyframes confuse-mouth {
+      0% {
+        width: 30px;
+        height: 15px;
+        background-color: #333;
+        border-radius: 0 0 50px 50px;
+      }
+      50% {
+        width: 20px;
+        height: 20px;
+        background-color: #ff6b6b;
+        border-radius: 50%;
+      }
+      100% {
+        width: 30px;
+        height: 15px;
+        background-color: #333;
+        border-radius: 0 0 50px 50px;
+      }
+    }
+
+    @keyframes look-around {
+      0% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      50% { transform: translateX(5px); }
+      75% { transform: translateX(-2px); }
+      100% { transform: translateX(0); }
+    }
+
+    @keyframes look-around-eyes {
+      0%, 100% {
+        transform: translateX(0);
+      }
+      50% {
+        transform: translateX(5px);
+      }
+    }
+
+    @keyframes look-around-mouth {
+      0% {
+        width: 30px;
+        height: 15px;
+        border-radius: 0 0 50px 50px;
+      }
+      50% {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+      }
+      100% {
+        width: 30px;
+        height: 15px;
+        border-radius: 0 0 50px 50px;
+      }
+    }
+
+    /* Animación "excited" más sutil */
+    @keyframes excited {
+      0%   { background-color: #70a1ff; }
+      50%  { background-color: #ffacb7; }
+      100% { background-color: #70a1ff; }
+    }
+  </style>
+</head>
+<body>
+  <div id="tamagotchi-container">
+    <div id="robot" class="level-1">
+      <div class="antenna"></div>
+      <div class="eyes">
+        <div class="eye">
+          <div class="pupil"></div>
+        </div>
+        <div class="eye">
+          <div class="pupil"></div>
+        </div>
+      </div>
+      <div class="mouth"></div>
+      <div class="arm left-arm"></div>
+      <div class="arm right-arm"></div>
+      <div class="wheels">
+        <div class="wheel"></div>
+        <div class="wheel"></div>
+      </div>
+      <!-- Emoji Display -->
+      <div class="emoji" id="emoji">😊</div>
+    </div>
+
+    <div class="buttons">
+      <button onclick="changeState('happy')">Felicidad</button>
+      <button onclick="changeState('sad')">Tristeza</button>
+      <button onclick="changeState('laugh')">Risa</button>
+      <button onclick="changeState('think')">Pensar</button>
+      <button onclick="changeState('sleep')">Dormir</button>
+      <button onclick="changeState('work')">Trabajar</button>
+      <button onclick="changeState('rotate')">Rotar</button>
+      <button onclick="changeState('createTask')">Crear Tarea</button>
+      <button onclick="changeState('addFriend')">Añadir Amigo</button>
+      <button onclick="changeState('removeFriend')">Eliminar Amigo</button>
+      <button onclick="changeState('archiveTask')">Archivar Tarea</button>
+      <button onclick="changeState('editTask')">Editar Tarea</button>
+      <button onclick="changeState('excited')">Emocionado</button> <!-- Nuevo estado -->
+      <button onclick="changeLevel('decrease')">Bajar Nivel</button>
+      <button onclick="changeLevel('increase')">Subir Nivel</button>
+      <button onclick="changeState('maligno')">Modo Maligno</button> <!-- Modo Maligno -->
+    </div>
+  </div>
+
+  <script>
+    let currentState = null;
+    let animationTimeout = null;
+    let currentLevel = 1;
+
+    /* =======================
+       OJOS SIGUIENDO EL CURSOR
+       ======================= */
+    const eyes = document.querySelectorAll('.eye');
+    window.addEventListener('mousemove', (e) => {
+      eyes.forEach(eye => {
+        const pupil = eye.querySelector('.pupil');
+        if(!pupil) return;
+
+        // Centro del ojo
+        const rect = eye.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+
+        // Ángulo hacia el cursor
+        const angle = Math.atan2(e.clientY - centerY, e.clientX - centerX);
+
+        // Distancia máxima que la pupila se moverá dentro del ojo
+        const maxOffset = 5; 
+        const offsetX = Math.cos(angle) * maxOffset;
+        const offsetY = Math.sin(angle) * maxOffset;
+
+        // Actualizar posición de la pupila
+        // Pupila originalmente en top:7px, left:7px => Ajuste aquí
+        pupil.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
+      });
+    });
+
+    /* =========================
+       CAMBIO DE ESTADO (ACCIÓN)
+       ========================= */
+    function changeState(state) {
+      const robot = document.getElementById('robot');
+      const mouth = document.querySelector('.mouth');
+      const arms = document.querySelectorAll('.arm');
+      const wheels = document.querySelectorAll('.wheel');
+      const antenna = document.querySelector('.antenna');
+      const emoji = document.getElementById('emoji');
+
+      // Detener animaciones actuales
+      robot.style.animation = 'none';
+      mouth.style.animation = 'none';
+      arms.forEach(arm => arm.style.animation = 'none');
+      wheels.forEach(wheel => wheel.style.animation = 'none');
+      antenna.style.animation = 'none';
+      emoji.classList.remove('show-emoji');
+
+      clearTimeout(animationTimeout);
+
+      // Determinar emoji
+      switch(state) {
+        case 'happy':       emoji.textContent = '😊';  break;
+        case 'sad':         emoji.textContent = '😢';  break;
+        case 'laugh':       emoji.textContent = '😂';  break;
+        case 'think':       emoji.textContent = '🤔';  break;
+        case 'sleep':       emoji.textContent = '😴';  break;
+        case 'work':        emoji.textContent = '💼';  break;
+        case 'rotate':      emoji.textContent = '🔄';  break;
+        case 'createTask':  emoji.textContent = '📝';  break;
+        case 'addFriend':   emoji.textContent = '🤝';  break;
+        case 'removeFriend':emoji.textContent = '🚫';  break;
+        case 'archiveTask': emoji.textContent = '📂';  break;
+        case 'editTask':    emoji.textContent = '✏️';  break;
+        case 'excited':     emoji.textContent = '🤩';  break;
+        case 'maligno':     emoji.textContent = '😈';  break;
+        default:            emoji.textContent = '😊';  break;
+      }
+      // Mostrar emoji
+      emoji.classList.add('show-emoji');
+
+      // Animación base de "idle"
+      robot.style.animation = 'idle 7s infinite';
+
+      // Aplicar animación según estado
+      switch (state) {
+        case 'happy':
+          robot.style.animation = 'dance 2s infinite';
+          // Blink en ojos
+          eyes.forEach(eye => eye.style.animation = 'blink 1s infinite');
+          mouth.style.animation = 'happy-mouth 2s infinite';
+          wheels.forEach(wheel => wheel.style.animation = 'spin-wheels 0.5s infinite linear');
+          animationTimeout = setTimeout(resetState, 5000);
+          break;
+
+        case 'sad':
+          robot.style.animation = 'sad 2s infinite';
+          eyes.forEach(eye => {
+            eye.style.animation = 'none';
+            eye.style.transform = 'rotate(180deg)';
+            eye.style.backgroundColor = '#333';
+          });
+          mouth.style.animation = 'sad-mouth 2s infinite';
+          animationTimeout = setTimeout(resetState, 3000);
+          break;
+
+        case 'laugh':
+          robot.style.animation = 'laugh 1s infinite';
+          eyes.forEach(eye => eye.style.animation = 'blink 0.5s infinite');
+          mouth.style.animation = 'laugh-mouth 1s infinite';
+          wheels.forEach(wheel => wheel.style.animation = 'spin-wheels 0.3s infinite linear');
+          animationTimeout = setTimeout(resetState, 4000);
+          break;
+
+        case 'think':
+          robot.style.animation = 'think 3s infinite';
+          eyes.forEach(eye => eye.style.animation = 'think-eyes 3s infinite');
+          mouth.style.height = '5px';
+          animationTimeout = setTimeout(resetState, 6000);
+          break;
+
+        case 'sleep':
+          robot.style.animation = 'sleep 4s infinite';
+          eyes.forEach(eye => {
+            eye.style.height = '5px';
+            eye.style.backgroundColor = '#333';
+          });
+          mouth.style.animation = 'sleeping-mouth 4s infinite';
+          animationTimeout = setTimeout(resetState, 5000);
+          break;
+
+        case 'work':
+          robot.style.animation = 'work 1s infinite';
+          eyes.forEach(eye => {
+            eye.style.animation = 'blink 0.5s infinite';
+            eye.style.backgroundColor = '#70a1ff';
+          });
+          arms.forEach(arm => arm.style.animation = 'working-arms 0.5s infinite alternate');
+          animationTimeout = setTimeout(resetState, 7000);
+          break;
+
+        case 'rotate':
+          robot.style.animation = 'rotate 3s linear';
+          eyes.forEach(eye => eye.style.animation = 'blink 0.5s infinite');
+          mouth.style.animation = 'happy-mouth 1s infinite';
+          wheels.forEach(wheel => wheel.style.animation = 'spin-wheels 1s infinite linear');
+          animationTimeout = setTimeout(resetState, 3000);
+          break;
+
+        case 'createTask':
+          robot.style.animation = 'dance 1s 1';
+          eyes.forEach(eye => {
+            eye.style.animation = 'celebration-eyes 1s infinite';
+            eye.style.backgroundColor = '#ffcc00';
+          });
+          mouth.style.animation = 'celebration-mouth 1s infinite';
+          antenna.style.animation = 'antenna-glow 1s infinite';
+          animationTimeout = setTimeout(resetState, 3000);
+          break;
+
+        case 'addFriend':
+          robot.style.animation = 'dance 1s 1';
+          eyes.forEach(eye => {
+            eye.style.animation = 'celebration-eyes 1s infinite';
+            eye.style.backgroundColor = '#ffcc00';
+          });
+          mouth.style.animation = 'celebration-mouth 1s infinite';
+          wheels.forEach(wheel => wheel.style.animation = 'spin-wheels 0.5s infinite linear');
+          animationTimeout = setTimeout(resetState, 3000);
+          break;
+
+        case 'removeFriend':
+          robot.style.animation = 'confuse 3s infinite';
+          eyes.forEach(eye => {
+            eye.style.animation = 'confuse-eyes 3s infinite';
+            eye.style.backgroundColor = '#333';
+          });
+          mouth.style.animation = 'confuse-mouth 3s infinite';
+          animationTimeout = setTimeout(resetState, 3000);
+          break;
+
+        case 'archiveTask':
+          robot.style.animation = 'look-around 4s infinite';
+          eyes.forEach(eye => {
+            eye.style.animation = 'look-around-eyes 4s infinite';
+            eye.style.backgroundColor = '#fff';
+          });
+          mouth.style.animation = 'look-around-mouth 4s infinite';
+          animationTimeout = setTimeout(resetState, 4000);
+          break;
+
+        case 'editTask':
+          robot.style.animation = 'think 3s infinite';
+          eyes.forEach(eye => {
+            eye.style.animation = 'think-eyes 3s infinite';
+            eye.style.backgroundColor = '#70a1ff';
+          });
+          mouth.style.animation = 'happy-mouth 3s infinite';
+          animationTimeout = setTimeout(resetState, 3000);
+          break;
+
+        case 'excited':
+          robot.style.animation = 'excited 1s infinite alternate';
+          eyes.forEach(eye => {
+            eye.style.animation = 'blink 0.3s infinite';
+            eye.style.backgroundColor = '#ff7675';
+          });
+          mouth.style.animation = 'happy-mouth 1s infinite';
+          wheels.forEach(wheel => wheel.style.animation = 'spin-wheels 0.3s infinite linear');
+          animationTimeout = setTimeout(resetState, 4000);
+          break;
+
+        case 'maligno':
+          robot.style.animation = 'confuse 3s infinite';
+          eyes.forEach(eye => {
+            eye.style.animation = 'confuse-eyes 3s infinite';
+            eye.style.backgroundColor = '#ff0000';
+          });
+          mouth.style.animation = 'confuse-mouth 3s infinite';
+          wheels.forEach(wheel => wheel.style.animation = 'spin-wheels 1s infinite linear');
+          animationTimeout = setTimeout(resetState, 5000);
+          break;
+
+        default:
+          resetState();
+      }
+
+      currentState = state;
+    }
+
+    /* =========================
+       RESETEAR ESTADO
+       ========================= */
+    function resetState() {
+      const robot = document.getElementById('robot');
+      const mouth = document.querySelector('.mouth');
+      const arms = document.querySelectorAll('.arm');
+      const wheels = document.querySelectorAll('.wheel');
+      const antenna = document.querySelector('.antenna');
+      const emoji = document.getElementById('emoji');
+      const eyes = document.querySelectorAll('.eye');
+
+      // Animación base
+      robot.style.animation = 'idle 7s infinite';
+      mouth.style.animation = 'none';
+      arms.forEach(arm => arm.style.animation = 'none');
+      wheels.forEach(wheel => wheel.style.animation = 'none');
+      antenna.style.animation = 'antenna-glow 2s infinite alternate';
+      emoji.classList.remove('show-emoji');
+
+      // Restablecer ojos
+      eyes.forEach(eye => {
+        eye.style.animation = 'none';
+        eye.style.transform = 'none';
+        eye.style.height = '24px';
+        eye.style.backgroundColor = getEyeColor(currentLevel);
+      });
+
+      // Restablecer boca
+      mouth.style.width = '30px';
+      mouth.style.height = '15px';
+      mouth.style.borderRadius = '0 0 50px 50px';
+      mouth.style.backgroundColor = '#333';
+      robot.style.backgroundColor = getRobotColor(currentLevel);
+      robot.style.transform = 'none';
+
+      currentState = null;
+    }
+
+    /* =========================
+       CAMBIAR NIVEL (1-5)
+       ========================= */
+    function changeLevel(action) {
+      const robot = document.getElementById('robot');
+
+      if (action === 'increase') {
+        currentLevel++;
+        if (currentLevel > 5) currentLevel = 5;
+      } else if (action === 'decrease') {
+        currentLevel--;
+        if (currentLevel < 1) currentLevel = 1;
+      }
+
+      // Quitar clases de nivel anteriores
+      for (let i = 1; i <= 5; i++) {
+        robot.classList.remove(`level-${i}`);
+      }
+
+      // Aplicar nueva clase de nivel
+      robot.classList.add(`level-${currentLevel}`);
+      robot.style.backgroundColor = getRobotColor(currentLevel);
+
+      // Actualizar color de ojos según nivel
+      const eyes = document.querySelectorAll('.eye');
+      eyes.forEach(eye => {
+        eye.style.backgroundColor = getEyeColor(currentLevel);
+      });
+
+      // Restablecer estado para aplicar cambios
+      resetState();
+    }
+
+    /* =========================
+       COLORES SEGÚN NIVEL
+       ========================= */
+    function getRobotColor(level) {
+      switch(level) {
+        case 1: return '#70a1ff';  // Azul brillante
+        case 2: return '#555';     // Gris
+        case 3: return '#ffd700';  // Dorado
+        case 4: return '#000';     // Negro
+        case 5: return '#8b0000';  // Rojo oscuro (maligno)
+        default: return '#70a1ff';
+      }
+    }
+
+    function getEyeColor(level) {
+      switch(level) {
+        case 1: return '#000';     // Negro
+        case 2: return '#555';     // Gris
+        case 3: return '#ffd700';  // Dorado
+        case 4: return '#ff0000';  // Rojo
+        case 5: return '#ff0000';  // Rojo oscuro (maligno)
+        default: return '#000';
+      }
+    }
+  </script>
+</body>
+</html>
